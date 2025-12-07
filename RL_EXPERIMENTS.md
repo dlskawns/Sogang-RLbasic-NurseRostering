@@ -136,7 +136,7 @@ R*t = Score*{\text{new}} - Score\_{\text{old}}
 
 ## 5. 실험 셋업 (Experimental Setup)
 
-- 실험 환경: `rl_experiments/envs/` (커스텀 Gym 스타일 환경)
+- 실험 환경: `envs/` (커스텀 Gym 스타일 환경)
 
 - 학습 / 테스트 시나리오
 

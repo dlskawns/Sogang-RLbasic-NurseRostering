@@ -7,15 +7,25 @@ import random
 import torch
 from datetime import datetime
 
-from rl_experiments.envs.roster_env import NurseRosterEnv
-from rl_experiments.agents.baseline_bandit import GreedyBanditAgent
-from rl_experiments.agents.dqn import DQNAgent
-from rl_experiments.agents.reinforce import ReinforceAgent
-from rl_experiments.agents.ppo import PPOAgent
+from envs.roster_env import NurseRosterEnv
+from agents.baseline_bandit import GreedyBanditAgent
+from agents.dqn import DQNAgent
+from agents.reinforce import ReinforceAgent
+from agents.ppo import PPOAgent
+
 
 def train(algo, episodes=1000, seed=42, scenario_id=1):
     """
-    선택한 알고리즘으로 학습(또는 실험)을 진행합니다.
+    선택한 알고리즘으로 간호사 근무표 강화학습 실험을 수행합니다.
+    
+    Args:
+        algo (str): 사용할 알고리즘 이름('bandit', 'dqn', 'reinforce', 'ppo').
+        episodes (int): 학습 에피소드 수(예: 200 에피소드).
+        seed (int): 난수 시드 값(예: 42).
+        scenario_id (int): 사용할 시나리오 ID(예: 1).
+    
+    Returns:
+        None: 결과는 로그 CSV와 최적 모델 파라미터 파일로 저장됩니다.
     """
     # 1. 환경 및 시드 설정
     np.random.seed(seed)
@@ -43,7 +53,7 @@ def train(algo, episodes=1000, seed=42, scenario_id=1):
         
     # 3. 로거 설정
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    log_dir = "rl_experiments/logs"
+    log_dir = "logs"
     os.makedirs(log_dir, exist_ok=True)
     log_file = f"{log_dir}/{algo}_seed{seed}_{timestamp}.csv"
     
@@ -54,7 +64,7 @@ def train(algo, episodes=1000, seed=42, scenario_id=1):
     print(f"=== Training Start: {algo.upper()} (Seed={seed}, Scenario={scenario_id}) ===")
 
     # 4. 모델 저장 설정 (최적 모델만 저장)
-    model_dir = os.path.join("rl_experiments", "models", algo)
+    model_dir = os.path.join("models", algo)
     os.makedirs(model_dir, exist_ok=True)
     model_path = os.path.join(
         model_dir, f"{algo}_scenario{scenario_id}_seed{seed}.pth"

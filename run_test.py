@@ -1,11 +1,13 @@
 import numpy as np
 import os
-from rl_experiments.utils.data_gen import create_and_save_dataset
-from rl_experiments.envs.roster_env import NurseRosterEnv
+
+from utils.data_gen import create_and_save_dataset
+from envs.roster_env import NurseRosterEnv
+
 
 def main():
     # 1. 데이터셋 생성 (없으면 생성)
-    data_path = "rl_experiments/data/dataset_medium.pkl"
+    data_path = "data/dataset_medium.pkl"
     if not os.path.exists(data_path):
         create_and_save_dataset(filepath=data_path)
     

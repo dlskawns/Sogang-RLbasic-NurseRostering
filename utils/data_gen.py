@@ -3,8 +3,9 @@ import pickle
 import os
 import random
 
+
 def create_and_save_dataset(
-    filepath="rl_experiments/data/dataset_medium.pkl",
+    filepath="data/dataset_medium.pkl",
     n_nurses=30,
     n_days=30
 ):

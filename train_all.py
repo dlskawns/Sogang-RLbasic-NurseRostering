@@ -3,14 +3,27 @@ import argparse
 import subprocess
 import time
 
+
 def run_experiment(algo, episodes, seed, scenario):
-    """단일 실험 실행 (subprocess)"""
+    """단일 실험 실행 (subprocess).
+    
+    Args:
+        algo (str): 사용할 알고리즘 이름.
+        episodes (int): 에피소드 수.
+        seed (int): 난수 시드.
+        scenario (int): 시나리오 ID.
+    """
     cmd = [
-        "python", "-m", "rl_experiments.train",
-        "--algo", algo,
-        "--episodes", str(episodes),
-        "--seed", str(seed),
-        "--scenario", str(scenario)
+        "python",
+        "train.py",
+        "--algo",
+        algo,
+        "--episodes",
+        str(episodes),
+        "--seed",
+        str(seed),
+        "--scenario",
+        str(scenario),
     ]
     
     print(f"  >> Running {algo.upper()} (Seed {seed})...")
@@ -53,8 +66,8 @@ def main():
             run_experiment(algo, args.episodes, seed, args.scenario)
             
     print("\n=== All Experiments Completed ===")
-    print("Check rl_experiments/logs/ for results.")
-    print("Run 'python rl_experiments/utils/plotter.py' to visualize.")
+    print("Check logs/ for results.")
+    print("Run 'python utils/plotter.py' to visualize.")
 
 if __name__ == "__main__":
     main()

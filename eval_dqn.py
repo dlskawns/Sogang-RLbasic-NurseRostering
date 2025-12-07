@@ -1,8 +1,8 @@
 import argparse
 import os
 
-from rl_experiments.envs.roster_env import NurseRosterEnv
-from rl_experiments.agents.dqn import DQNAgent
+from envs.roster_env import NurseRosterEnv
+from agents.dqn import DQNAgent
 
 
 def eval_dqn_on_scenarios(
@@ -49,7 +49,7 @@ def main():
     parser.add_argument(
         "--model",
         type=str,
-        default="rl_experiments/models/dqn/dqn_scenario1_seed42.pth",
+        default="models/dqn/dqn_scenario1_seed42.pth",
         help="Path to saved DQN model",
     )
     parser.add_argument(

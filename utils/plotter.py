@@ -5,7 +5,7 @@ import glob
 import os
 
 
-def plot_experiment_results(log_dir: str = "rl_experiments/logs") -> None:
+def plot_experiment_results(log_dir: str = "logs") -> None:
     """
     logs 폴더의 모든 CSV를 읽어 알고리즘별 학습 곡선과 요약 바 차트를 그립니다.
 
@@ -76,7 +76,7 @@ def plot_experiment_results(log_dir: str = "rl_experiments/logs") -> None:
     axes[1].set_ylabel("Hard Violations Count")
 
     plt.tight_layout()
-    lc_path = "rl_experiments/results_learning_curves.png"
+    lc_path = "results_learning_curves.png"
     plt.savefig(lc_path)
     print(f"[Saved] {lc_path}")
     plt.close(fig)
@@ -122,7 +122,7 @@ def plot_experiment_results(log_dir: str = "rl_experiments/logs") -> None:
     axes[1].set_ylabel("Final Score")
 
     plt.tight_layout()
-    bar_path = "rl_experiments/results_summary_bar.png"
+    bar_path = "results_summary_bar.png"
     plt.savefig(bar_path)
     print(f"[Saved] {bar_path}")
     plt.close(fig)

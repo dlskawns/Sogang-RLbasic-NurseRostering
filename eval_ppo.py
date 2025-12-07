@@ -1,8 +1,8 @@
 import argparse
 import os
 
-from rl_experiments.envs.roster_env import NurseRosterEnv
-from rl_experiments.agents.ppo import PPOAgent
+from envs.roster_env import NurseRosterEnv
+from agents.ppo import PPOAgent
 
 
 def eval_ppo_on_scenarios(
@@ -49,7 +49,7 @@ def main():
     parser.add_argument(
         "--model",
         type=str,
-        default="rl_experiments/models/ppo/ppo_scenario1_seed42.pth",
+        default="models/ppo/ppo_scenario1_seed42.pth",
         help="Path to saved PPO model",
     )
     parser.add_argument(

@@ -11,7 +11,7 @@ class NurseRosterEnv:
     특정 시나리오 ID를 지정하여 로드할 수 있습니다.
     """
     
-    def __init__(self, data_path="rl_experiments/data/scenarios.pkl", scenario_id=1):
+    def __init__(self, data_path="data/scenarios.pkl", scenario_id=1):
         # 1. 데이터 로드 (없으면 생성 시도하지 않고 에러)
         if not os.path.exists(data_path):
             raise FileNotFoundError(f"Scenario file not found at {data_path}. Run data_loader_csv.py first.")

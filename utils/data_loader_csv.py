@@ -3,11 +3,12 @@ import numpy as np
 import pickle
 import os
 
+
 def load_scenarios_from_csv(
     nurses_path="dataset_output/nurses.csv",
     reqs_path="dataset_output/requirements.csv",
     prefs_path="dataset_output/preferences.csv",
-    output_path="rl_experiments/data/scenarios.pkl"
+    output_path="data/scenarios.pkl",
 ):
     """
     CSV 파일들을 읽어 시나리오별 딕셔너리로 구조화하여 저장합니다.
