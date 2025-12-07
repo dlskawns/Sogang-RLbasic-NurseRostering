@@ -115,3 +115,40 @@
   Nurse_1   | D N E O D ...
   ...
   ```
+
+## 데이터 처리 흐름 (Mermaid 요약)
+
+- **학습(Training) 파이프라인**
+
+```mermaid
+flowchart LR
+    A[dataset_output/\nCSV 파일\n(nurses, requirements, preferences)] --> B[utils/data_loader_csv.py\nload_scenarios_from_csv]
+    B --> C[data/scenarios.pkl\n(시나리오 딕셔너리)]
+    C --> D[envs/roster_env.py\nNurseRosterEnv(scenario_id)]
+    D --> E[train.py / train_all.py\nBandit / DQN / REINFORCE / PPO]
+    E --> F[logs/\n알고리즘별 학습 로그 CSV]
+    E --> G[models/<algo>/\n최적 파라미터 .pth]
+    F --> H[utils/plotter.py\n학습 곡선/요약 바 차트]
+    H --> I[results_*.png\n(학습 결과 시각화)]
+```
+
+- **추론(Inference) 및 최종 근무표 생성 파이프라인**
+
+```mermaid
+flowchart LR
+    C2[data/scenarios.pkl\n(시나리오 딕셔너리)] --> D2[envs/roster_env.py\nNurseRosterEnv(scenario_id)]
+
+    subgraph MODELS[정책/로직 선택]
+        M1[Bandit\nGreedyBanditAgent\n(파라미터 없음)]:::banditStyle
+        M2[DQN\nDQNAgent + models/dqn/*.pth]
+        M3[REINFORCE\nReinforceAgent + models/reinforce/*.pth]
+        M4[PPO\nPPOAgent + models/ppo/*.pth]
+    end
+
+    D2 --> MODELS
+    MODELS --> G2[generate_roster.py\n(정책에 따라 env.step 루프 실행)]
+    G2 --> R2[env.current_roster\n(N x D 정수 매트릭스)]
+    R2 --> O2[콘솔 출력\nD/E/N/O 문자 근무표]
+
+    classDef banditStyle fill:#fdf2e9,stroke:#e67e22,stroke-width:1px;
+```
