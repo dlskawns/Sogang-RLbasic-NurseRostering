@@ -4,12 +4,12 @@
 
 ## RL 기반 간호사 근무표 실험 사용 방법
 
-- **사전 준비**
+- 사전 준비
 
   - 파이썬 환경에서 `pandas`, `numpy`, `matplotlib`, `seaborn`, `torch` 등이 설치되어 있어야 합니다.
   - `dataset_output/` 디렉토리에 `nurses.csv`, `requirements.csv`, `preferences.csv`가 존재해야 합니다.
 
-- **1단계: CSV → 시나리오 피클 생성**
+- 1단계: CSV → 시나리오 피클 생성
 
   - 루트 디렉토리에서 아래 명령을 실행합니다.
   - 시나리오 ID는 CSV에 들어있는 값만 유효하며, `scenario_id=1`이 없을 수도 있습니다.
@@ -19,7 +19,7 @@
   python utils/data_loader_csv.py
   ```
 
-- **2단계: 단일 알고리즘 개별 학습 실행**
+- 2단계: 단일 알고리즘 개별 학습 실행
 
   - 같은 시나리오에 대해 알고리즘별로 각각 학습시키고 싶다면 아래와 같이 명령을 별도로 실행합니다.
 
@@ -40,7 +40,7 @@
   - 학습 로그는 `logs/` 디렉토리에 `algo_seed*_*.csv` 형태로 저장됩니다.
   - DQN / REINFORCE / PPO는 에피소드마다 Hard Violation/Score 기준으로 최적 모델을 `models/<algo>/`에 저장합니다.
 
-- **3단계: 모든 알고리즘 배치 학습 실행**
+- 3단계: 모든 알고리즘 배치 학습 실행
 
   ```bash
   python train_all.py --episodes 200 --scenario 5
@@ -48,7 +48,7 @@
 
   - Bandit, DQN, REINFORCE, PPO가 순차적으로 실행되며, 각자의 로그와 모델이 `logs/`, `models/`에 쌓입니다.
 
-- **4단계: 저장된 모델 평가**
+- 4단계: 저장된 모델 평가
 
   - 학습이 완료된 뒤, 다음과 같이 각 알고리즘의 정책을 다양한 시나리오에 대해 평가할 수 있습니다.
 
@@ -66,7 +66,7 @@
   python eval_bandit.py --scenarios 3 5 7 8 10 12 13 15
   ```
 
-- **5단계: 학습 결과 시각화**
+- 5단계: 학습 결과 시각화
 
   - `logs/`에 저장된 CSV들을 읽어 학습 곡선과 요약 바 차트를 생성합니다.
 
@@ -76,7 +76,7 @@
 
   - 결과 이미지는 루트 디렉토리에 `results_learning_curves.png`, `results_summary_bar.png` 파일로 저장됩니다.
 
-- **6단계: 최종 근무표 생성(추론)**
+- 6단계: 최종 근무표 생성(추론)
 
   - 학습이 끝난 뒤, 선택한 알고리즘과 시나리오 ID에 대해 최종 근무표를 D/E/N/O 문자 매트릭스로 출력할 수 있습니다.
   - Bandit의 경우 파라미터가 없으므로 모델 경로 없이 실행하며, DQN/REINFORCE/PPO는 기본 모델 경로를 자동으로 참조합니다.
@@ -115,40 +115,3 @@
   Nurse_1   | D N E O D ...
   ...
   ```
-
-## 데이터 처리 흐름 (Mermaid 요약)
-
-- **학습(Training) 파이프라인**
-
-```mermaid
-flowchart LR
-    A[dataset_output/\nCSV 파일\n(nurses, requirements, preferences)] --> B[utils/data_loader_csv.py\nload_scenarios_from_csv]
-    B --> C[data/scenarios.pkl\n(시나리오 딕셔너리)]
-    C --> D[envs/roster_env.py\nNurseRosterEnv(scenario_id)]
-    D --> E[train.py / train_all.py\nBandit / DQN / REINFORCE / PPO]
-    E --> F[logs/\n알고리즘별 학습 로그 CSV]
-    E --> G[models/<algo>/\n최적 파라미터 .pth]
-    F --> H[utils/plotter.py\n학습 곡선/요약 바 차트]
-    H --> I[results_*.png\n(학습 결과 시각화)]
-```
-
-- **추론(Inference) 및 최종 근무표 생성 파이프라인**
-
-```mermaid
-flowchart LR
-    C2[data/scenarios.pkl\n(시나리오 딕셔너리)] --> D2[envs/roster_env.py\nNurseRosterEnv(scenario_id)]
-
-    subgraph MODELS[정책/로직 선택]
-        M1[Bandit\nGreedyBanditAgent\n(파라미터 없음)]:::banditStyle
-        M2[DQN\nDQNAgent + models/dqn/*.pth]
-        M3[REINFORCE\nReinforceAgent + models/reinforce/*.pth]
-        M4[PPO\nPPOAgent + models/ppo/*.pth]
-    end
-
-    D2 --> MODELS
-    MODELS --> G2[generate_roster.py\n(정책에 따라 env.step 루프 실행)]
-    G2 --> R2[env.current_roster\n(N x D 정수 매트릭스)]
-    R2 --> O2[콘솔 출력\nD/E/N/O 문자 근무표]
-
-    classDef banditStyle fill:#fdf2e9,stroke:#e67e22,stroke-width:1px;
-```

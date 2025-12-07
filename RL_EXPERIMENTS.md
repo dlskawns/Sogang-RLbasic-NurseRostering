@@ -138,14 +138,14 @@ R*t = Score*{\text{new}} - Score\_{\text{old}}
 
 ```mermaid
 flowchart LR
-    A[현재 근무표\ncurrent_roster (N x D)] --> B[Global State\n(D, 3)\n인력 부족량 계산]
+    A["현재 근무표\ncurrent_roster (N x D)"] --> B["Global State\n(D, 3)\n인력 부족량 계산"]
     B --> C{Epsilon-Greedy}
-    C -->|ε 확률| D[무작위 (n, d, s)\n랜덤 액션]
-    C -->|(1-ε) 확률| E[가장 부족한\n(날짜, 근무타입) 찾기]
-    E --> F[해당 날짜에\nOff(0)인 간호사 중 한 명 선택]
-    D --> G[(nurse_idx, day_idx, shift_code)]
+    C -->|ε 확률| D["무작위 (n, d, s)\n랜덤 액션"]
+    C -->|"(1-ε) 확률"| E["가장 부족한\n(날짜, 근무타입) 찾기"]
+    E --> F["해당 날짜에\nOff(0)인 간호사 중 한 명 선택"]
+    D --> G[/"(nurse_idx, day_idx, shift_code)"/]
     F --> G
-    G --> H[env.step(action)\n근무표 수정 및 점수 계산]
+    G --> H["env.step(action)\n근무표 수정 및 점수 계산"]
 ```
 
 #### 4.5.2 DQN: QNetwork 구조
@@ -153,30 +153,26 @@ flowchart LR
 ```mermaid
 flowchart TD
     subgraph INPUTS[DQN 입력]
-        N1[Nurse State\n(N, D, 5)] -->|
-            reshape + permute\n(B*N, 5, D)
-        | NC[Nurse Conv1d\n32ch → 64ch\n+ ReLU + MaxPool]
-        G1[Global State\n(D, 3)] -->|
-            permute\n(B, 3, D)
-        | GC[Global Conv1d\n32ch\n+ ReLU + MaxPool]
+        N1["Nurse State\n(N, D, 5)"] -->| "reshape + permute\n(B*N, 5, D)" | NC["Nurse Conv1d\n32ch → 64ch\n+ ReLU + MaxPool"]
+        G1["Global State\n(D, 3)"] -->| "permute\n(B, 3, D)" | GC["Global Conv1d\n32ch\n+ ReLU + MaxPool"]
     end
 
-    NC --> NF[Nurse Summary\n(B, 64)\n(max over N)]
-    GC --> GF[Global Summary\n(B, 32)]
-    NF --> CAT[Concat\n(B, 96)]
+    NC --> NF["Nurse Summary\n(B, 64)\n(max over N)"]
+    GC --> GF["Global Summary\n(B, 32)"]
+    NF --> CAT["Concat\n(B, 96)"]
     GF --> CAT
 
     subgraph HEADS[Q-Value Heads]
-        CAT --> HN[Head Nurse\nLinear(96→128) + ReLU + Linear(128→N)\nQ_n(s)]
-        CAT --> HD[Head Day\nLinear(96→128) + ReLU + Linear(128→D)\nQ_d(s)]
-        CAT --> HS[Head Shift\nLinear(96→64) + ReLU + Linear(64→4)\nQ_s(s)]
+        CAT --> HN["Head Nurse\nLinear(96→128) + ReLU + Linear(128→N)\nQ_n(s)"]
+        CAT --> HD["Head Day\nLinear(96→128) + ReLU + Linear(128→D)\nQ_d(s)"]
+        CAT --> HS["Head Shift\nLinear(96→64) + ReLU + Linear(64→4)\nQ_s(s)"]
     end
 
-    HN --> ArgN[argmax over N]
-    HD --> ArgD[argmax over D]
-    HS --> ArgS[argmax over 4]
+    HN --> ArgN["argmax over N"]
+    HD --> ArgD["argmax over D"]
+    HS --> ArgS["argmax over 4"]
 
-    ArgN --> ACT[(nurse_idx)]
+    ArgN --> ACT[/"(nurse_idx)"/]
     ArgD --> ACT
     ArgS --> ACT
 ```
@@ -186,30 +182,26 @@ flowchart TD
 ```mermaid
 flowchart TD
     subgraph INPUTS2[REINFORCE 입력]
-        RN[Nurse State\n(N, D, 5)] -->|
-            reshape + permute\n(B*N, 5, D)
-        | RNC[Nurse Conv1d\n32ch → 64ch\n+ ReLU + MaxPool]
-        RG[Global State\n(D, 3)] -->|
-            permute\n(B, 3, D)
-        | RGC[Global Conv1d\n32ch\n+ ReLU + MaxPool]
+        RN["Nurse State\n(N, D, 5)"] -->| "reshape + permute\n(B*N, 5, D)" | RNC["Nurse Conv1d\n32ch → 64ch\n+ ReLU + MaxPool"]
+        RG["Global State\n(D, 3)"] -->| "permute\n(B, 3, D)" | RGC["Global Conv1d\n32ch\n+ ReLU + MaxPool"]
     end
 
-    RNC --> RNF[Nurse Summary\n(B, 64)]
-    RGC --> RGF[Global Summary\n(B, 32)]
-    RNF --> RCAT[Concat\n(B, 96)]
+    RNC --> RNF["Nurse Summary\n(B, 64)"]
+    RGC --> RGF["Global Summary\n(B, 32)"]
+    RNF --> RCAT["Concat\n(B, 96)"]
     RGF --> RCAT
 
     subgraph POLICY_HEADS[Policy Heads (Logits)]
-        RCAT --> PN[Head Nurse\nLinear(96→128) + ReLU + Linear(128→N)\nlogits_n]
-        RCAT --> PD[Head Day\nLinear(96→128) + ReLU + Linear(128→D)\nlogits_d]
-        RCAT --> PS[Head Shift\nLinear(96→64) + ReLU + Linear(64→4)\nlogits_s]
+        RCAT --> PN["Head Nurse\nLinear(96→128) + ReLU + Linear(128→N)\nlogits_n"]
+        RCAT --> PD["Head Day\nLinear(96→128) + ReLU + Linear(128→D)\nlogits_d"]
+        RCAT --> PS["Head Shift\nLinear(96→64) + ReLU + Linear(64→4)\nlogits_s"]
     end
 
-    PN --> CN[Categorical(logits_n)\n→ sample n]
-    PD --> CD[Categorical(logits_d)\n→ sample d]
-    PS --> CS[Categorical(logits_s)\n→ sample s]
+    PN --> CN["Categorical(logits_n)\n→ sample n"]
+    PD --> CD["Categorical(logits_d)\n→ sample d"]
+    PS --> CS["Categorical(logits_s)\n→ sample s"]
 
-    CN --> A2[(nurse_idx)]
+    CN --> A2[/"(nurse_idx)"/]
     CD --> A2
     CS --> A2
 ```
@@ -219,34 +211,30 @@ flowchart TD
 ```mermaid
 flowchart TD
     subgraph INPUTS3[PPO 입력]
-        PN3[Nurse State\n(N, D, 5)] -->|
-            reshape + permute\n(B*N, 5, D)
-        | PNC[Nurse Conv1d\n32ch → 64ch\n+ ReLU + MaxPool]
-        PG3[Global State\n(D, 3)] -->|
-            permute\n(B, 3, D)
-        | PGC[Global Conv1d\n32ch\n+ ReLU + MaxPool]
+        PN3["Nurse State\n(N, D, 5)"] -->| "reshape + permute\n(B*N, 5, D)" | PNC["Nurse Conv1d\n32ch → 64ch\n+ ReLU + MaxPool"]
+        PG3["Global State\n(D, 3)"] -->| "permute\n(B, 3, D)" | PGC["Global Conv1d\n32ch\n+ ReLU + MaxPool"]
     end
 
-    PNC --> PNF[Nurse Summary\n(B, 64)]
-    PGC --> PGF[Global Summary\n(B, 32)]
-    PNF --> PCAT[Shared Feature\nConcat (B, 96)]
+    PNC --> PNF["Nurse Summary\n(B, 64)"]
+    PGC --> PGF["Global Summary\n(B, 32)"]
+    PNF --> PCAT["Shared Feature\nConcat (B, 96)"]
     PGF --> PCAT
 
     subgraph ACTOR[Actor Heads (Policy)]
-        PCAT --> AN[Actor_n\nLinear(96→64) + ReLU + Linear(64→N)\nlogits_n]
-        PCAT --> AD[Actor_d\nLinear(96→64) + ReLU + Linear(64→D)\nlogits_d]
-        PCAT --> AS[Actor_s\nLinear(96→64) + ReLU + Linear(64→4)\nlogits_s]
+        PCAT --> AN["Actor_n\nLinear(96→64) + ReLU + Linear(64→N)\nlogits_n"]
+        PCAT --> AD["Actor_d\nLinear(96→64) + ReLU + Linear(64→D)\nlogits_d"]
+        PCAT --> AS["Actor_s\nLinear(96→64) + ReLU + Linear(64→4)\nlogits_s"]
     end
 
     subgraph CRITIC[Critic Head (Value)]
-        PCAT --> VC[Value Head\nLinear(96→64) + ReLU + Linear(64→1)\nV(s)]
+        PCAT --> VC["Value Head\nLinear(96→64) + ReLU + Linear(64→1)\nV(s)"]
     end
 
-    AN --> CAN[Categorical\nsample nurse_idx]
-    AD --> CAD[Categorical\nsample day_idx]
-    AS --> CAS[Categorical\nsample shift_idx]
+    AN --> CAN["Categorical\nsample nurse_idx"]
+    AD --> CAD["Categorical\nsample day_idx"]
+    AS --> CAS["Categorical\nsample shift_idx"]
 
-    CAN --> A3[(nurse_idx)]
+    CAN --> A3[/"(nurse_idx)"/]
     CAD --> A3
     CAS --> A3
 ```
