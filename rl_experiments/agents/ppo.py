@@ -191,3 +191,16 @@ class PPOAgent:
         
         return total_loss / self.k_epochs
 
+    def save(self, path: str) -> None:
+        """
+        현재 Actor-Critic 네트워크의 파라미터를 지정한 경로에 저장합니다.
+        """
+        torch.save(self.policy.state_dict(), path)
+
+    def load(self, path: str) -> None:
+        """
+        저장된 파라미터를 로드하여 Actor-Critic 네트워크를 복원합니다.
+        """
+        state_dict = torch.load(path, map_location=self.device)
+        self.policy.load_state_dict(state_dict)
+

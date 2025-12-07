@@ -13,7 +13,7 @@ from rl_experiments.agents.dqn import DQNAgent
 from rl_experiments.agents.reinforce import ReinforceAgent
 from rl_experiments.agents.ppo import PPOAgent
 
-def train(algo, episodes=1000, seed=42):
+def train(algo, episodes=1000, seed=42, scenario_id=1):
     """
     선택한 알고리즘으로 학습(또는 실험)을 진행합니다.
     """
@@ -22,7 +22,12 @@ def train(algo, episodes=1000, seed=42):
     torch.manual_seed(seed)
     random.seed(seed)
     
-    env = NurseRosterEnv() # 기본 데이터셋 사용
+    # 시나리오 ID 지정
+    try:
+        env = NurseRosterEnv(scenario_id=scenario_id) 
+    except Exception as e:
+        print(f"Error loading environment: {e}")
+        return
     
     # 2. 에이전트 선택
     if algo == 'bandit':
@@ -46,9 +51,18 @@ def train(algo, episodes=1000, seed=42):
         writer = csv.writer(f)
         writer.writerow(['episode', 'steps', 'total_reward', 'final_score', 'hard_violations', 'coverage_shortage', 'time', 'epsilon', 'loss'])
 
-    print(f"=== Training Start: {algo.upper()} (Seed={seed}) ===")
+    print(f"=== Training Start: {algo.upper()} (Seed={seed}, Scenario={scenario_id}) ===")
+
+    # 4. 모델 저장 설정 (최적 모델만 저장)
+    model_dir = os.path.join("rl_experiments", "models", algo)
+    os.makedirs(model_dir, exist_ok=True)
+    model_path = os.path.join(
+        model_dir, f"{algo}_scenario{scenario_id}_seed{seed}.pth"
+    )
+    best_hard = float("inf")
+    best_score = -float("inf")
     
-    # 4. 에피소드 루프
+    # 5. 에피소드 루프
     start_time = time.time()
     
     for ep in range(1, episodes + 1):
@@ -92,6 +106,25 @@ def train(algo, episodes=1000, seed=42):
             loss_sum = loss
             update_cnt = 1
             
+        # Best 모델 갱신 및 저장 (Hard Violation 우선, 그 다음 Score)
+        if algo in ['dqn', 'reinforce', 'ppo']:
+            cur_hard = info['hard_violations']
+            cur_score = env.current_score
+            is_better = (cur_hard < best_hard) or (
+                cur_hard == best_hard and cur_score > best_score
+            )
+            if is_better:
+                best_hard = cur_hard
+                best_score = cur_score
+                # 에이전트에 save 메서드가 정의되어 있다고 가정
+                try:
+                    agent.save(model_path)
+                    # 너무 자주 출력되면 시끄러우니 50 에피소드 단위로만 표시
+                    if ep % 50 == 0:
+                        print(f"  >> New best model saved: Hard={best_hard}, Score={best_score:.2f}")
+                except AttributeError:
+                    pass
+
         # 통계
         avg_loss = loss_sum / update_cnt if update_cnt > 0 else 0
         eps = agent.epsilon if hasattr(agent, 'epsilon') else 0
@@ -116,13 +149,16 @@ def train(algo, episodes=1000, seed=42):
 
 
     print(f"=== Training Finished. Log saved to {log_file} ===")
+    if algo in ['dqn', 'reinforce', 'ppo']:
+        print(f"Best model (Hard={best_hard}, Score={best_score:.2f}) saved to {model_path}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--algo', type=str, default='bandit', help='Algorithm to use (bandit, dqn, ppo)')
     parser.add_argument('--episodes', type=int, default=100, help='Number of episodes')
     parser.add_argument('--seed', type=int, default=42, help='Random seed')
+    parser.add_argument('--scenario', type=int, default=1, help='Scenario ID')
     args = parser.parse_args()
     
-    train(args.algo, args.episodes, args.seed)
+    train(args.algo, args.episodes, args.seed, args.scenario)
 

@@ -166,6 +166,9 @@ class DQNAgent:
         act_s = torch.LongTensor(actions[:, 2]).to(self.device)
         
         rewards = torch.FloatTensor([x[2] for x in batch]).to(self.device)
+        # Reward Normalization (Simple Tanh)
+        # 점수 변동폭이 크므로(-10 ~ +10), tanh로 -1~1 사이로 압축하여 학습 안정화
+        rewards = torch.tanh(rewards / 10.0) 
         
         next_n_states = torch.FloatTensor(np.array([x[3]['nurse_state'] for x in batch])).to(self.device)
         next_g_states = torch.FloatTensor(np.array([x[3]['global_state'] for x in batch])).to(self.device)
@@ -207,7 +210,21 @@ class DQNAgent:
             self.epsilon *= self.epsilon_decay
             
         return total_loss.item()
-        
+
     def update_target_network(self):
         self.target_net.load_state_dict(self.q_net.state_dict())
+
+    def save(self, path: str) -> None:
+        """
+        현재 Q 네트워크의 파라미터를 지정한 경로에 저장합니다.
+        """
+        torch.save(self.q_net.state_dict(), path)
+
+    def load(self, path: str) -> None:
+        """
+        저장된 파라미터를 로드하여 Q 네트워크를 복원합니다.
+        """
+        state_dict = torch.load(path, map_location=self.device)
+        self.q_net.load_state_dict(state_dict)
+        self.target_net.load_state_dict(state_dict)
 

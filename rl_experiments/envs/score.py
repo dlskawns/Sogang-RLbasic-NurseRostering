@@ -39,19 +39,27 @@ class RosterScore:
         }
 
         # 1. Coverage Check (인원수 부족 확인) - Global Constraint
-        # 각 날짜별로 D, E, N 근무자 수를 셉니다.
-        # axis=0은 '간호사들'을 따라가며 세는 것 = 즉 날짜별 합계
+        # 동적 min_staff 처리 (일자별로 다름)
+        # min_staff_dynamic = {0: {'D':6, ...}, 1: {...}}
+        min_staff_dyn = self.cfg.get('min_staff_dynamic', {})
+        
+        # 전체 인원 카운트 미리 계산
         day_counts = np.sum(roster == self.DAY, axis=0) # (D,)
         eve_counts = np.sum(roster == self.EVE, axis=0)
         nig_counts = np.sum(roster == self.NIG, axis=0)
         
-        # 부족분 계산 (음수면 부족) -> 절댓값 씌워서 벌점
-        # 예: 필요 6명 - 실제 4명 = 2명 부족 -> -2 * 5.0 = -10점
-        short_d = np.maximum(0, self.cfg['min_staff']['D'] - day_counts)
-        short_e = np.maximum(0, self.cfg['min_staff']['E'] - eve_counts)
-        short_n = np.maximum(0, self.cfg['min_staff']['N'] - nig_counts)
+        total_shortage = 0
         
-        total_shortage = np.sum(short_d + short_e + short_n)
+        # 일자별 반복 (Vectorize 가능하지만 가독성 위해 Loop)
+        for d in range(D):
+            reqs = min_staff_dyn.get(d, {'D':0, 'E':0, 'N':0})
+            
+            s_d = max(0, reqs.get('D', 0) - day_counts[d])
+            s_e = max(0, reqs.get('E', 0) - eve_counts[d])
+            s_n = max(0, reqs.get('N', 0) - nig_counts[d])
+            
+            total_shortage += (s_d + s_e + s_n)
+            
         score -= (total_shortage * self.weights['coverage'])
         info['coverage_shortage'] = total_shortage
 
